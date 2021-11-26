@@ -1,4 +1,3 @@
-const { models } = require("mongoose");
 const Gecoder = require("node-geocoder");
 
 const options = {
@@ -10,4 +9,4 @@ const options = {
 
 const gecoder = Gecoder(options);
 
-model.exports = gecoder;
+module.exports = gecoder;

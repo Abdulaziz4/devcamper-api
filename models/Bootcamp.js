@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const slugify = require("slugify");
+const gecoder = require("../utils/gecoder");
 
 const bootcampSchema = mongoose.Schema({
   name: {
@@ -99,8 +100,30 @@ const bootcampSchema = mongoose.Schema({
   },
 });
 
+// Create slug from the name
 bootcampSchema.pre("save", function (next) {
   this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+// Gecode the location based on the address
+bootcampSchema.pre("save", async function (next) {
+  const loc = await gecoder.geocode(this.address);
+  this.location = {
+    // GeoJSON Point
+    type: "Point",
+    coordinates: [loc[0].longitude, loc[0].latitude],
+    formattedAddress: loc[0].formattedAddress,
+    street: loc[0].street,
+    city: loc[0].city,
+    state: loc[0].stateCode,
+    zipcode: loc[0].zipcode,
+    country: loc[0].countryCode,
+  };
+
+  // Do not save address in DB, it's only received to be gecoded
+  this.address = undefined;
+
   next();
 });
 
