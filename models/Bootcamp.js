@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const slugify = require("slugify");
 
 const bootcampSchema = mongoose.Schema({
   name: {
@@ -96,6 +97,11 @@ const bootcampSchema = mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+});
+
+bootcampSchema.pre("save", function (next) {
+  this.slug = slugify(this.name, { lower: true });
+  next();
 });
 
 module.exports = mongoose.model("Bootcamp", bootcampSchema);
