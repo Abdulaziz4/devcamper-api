@@ -7,10 +7,68 @@ const Bootcamp = require("../models/Bootcamp");
 // @route       GET api/v1/bootcamps
 // @access      Public
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
-  const bootcamps = await Bootcamp.find();
-  res
-    .status(200)
-    .json({ success: true, count: bootcamps.length, data: bootcamps });
+  let reqQuery = { ...req.query };
+
+  // Keys to be removed from the query
+  const excludedKeys = ["select", "sortBy"];
+
+  // Delete the excluded keys from copied request query
+  excludedKeys.forEach((key) => delete reqQuery[key]);
+
+  let queryString = JSON.stringify(req.query);
+  // Append $ before the operator to be performed by mongo
+  queryString = queryString.replace(
+    /\b(eq|gt|gte|lt|lte|ne|in)\b/g,
+    (match) => `$${match}`
+  );
+
+  let query = Bootcamp.find(JSON.parse(queryString));
+
+  //Selecting
+  if (req.query.select) {
+    // Convert comma sapreted to list of string
+    const fields = req.query.select.split(",").join(" ");
+    query = query.select(fields);
+  }
+
+  //Sorting
+  if (req.query.sortBy) {
+    // Convert comma sapreted to list of string
+    const sortBy = req.query.sortBy.split(",").join(" ");
+    query = query.sort(sortBy);
+  } else {
+    // Desending date
+    query = query.sort("-createdAt");
+  }
+
+  //Pagination
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 25;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  const total = await Bootcamp.countDocuments();
+
+  query = query.skip(startIndex).limit(limit);
+
+  const pagination = {};
+
+  if (endIndex < total) {
+    pagination.next = {
+      page: page + 1,
+      limit,
+    };
+  }
+  if (startIndex > 0) {
+    pagination.prev = { page: page - 1, limit };
+  }
+
+  const bootcamps = await query;
+  res.status(200).json({
+    success: true,
+    count: bootcamps.length,
+    pagination,
+    data: bootcamps,
+  });
 });
 
 // @desc        Get single bootcamp
