@@ -1,25 +1,31 @@
+// node sedder.js -i => to import data
+// node sedder.js -d => to destroy data
+
 const fs = require("fs");
 const dotenv = require("dotenv");
 const colors = require("colors");
 const mongosse = require("mongoose");
-
 // Load env vars
 dotenv.config({ path: "./config/config.env" });
 
 // Require models
 const Bootcamp = require("./models/Bootcamp");
-
+const Course = require("./models/Course");
 // Connect to DB
 mongosse.connect(process.env.MONGO_URI);
 
 // Load data file
-const filePath = `${__dirname}/_data/bootcamps.json`;
-const jsonData = JSON.parse(fs.readFileSync(filePath));
+const bootcampsFilePath = `${__dirname}/_data/bootcamps.json`;
+const bootcampsJsonData = JSON.parse(fs.readFileSync(bootcampsFilePath));
+
+const coursesFilePath = `${__dirname}/_data/courses.json`;
+const coursesJsonData = JSON.parse(fs.readFileSync(coursesFilePath));
 
 // Import to db
 const importData = async () => {
   try {
-    await Bootcamp.create(jsonData);
+    await Bootcamp.create(bootcampsJsonData);
+    await Course.create(coursesJsonData);
     console.log("Data Imported...".green.inverse);
   } catch (error) {
     console.error(error);
@@ -31,6 +37,8 @@ const importData = async () => {
 const destoryData = async () => {
   try {
     await Bootcamp.deleteMany();
+    await Course.deleteMany();
+
     console.log("Data Destroyed...".red.inverse);
   } catch (error) {
     console.error(error);
