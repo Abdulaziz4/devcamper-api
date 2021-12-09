@@ -22,7 +22,7 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
     (match) => `$${match}`
   );
 
-  let query = Bootcamp.find(JSON.parse(queryString));
+  let query = Bootcamp.find(JSON.parse(queryString)).populate("courses");
 
   //Selecting
   if (req.query.select) {
@@ -116,12 +116,13 @@ exports.updateBootcamp = asyncHandler(async (req, res, next) => {
 // @route       DELETE api/v1/bootcamps/:id
 // @access      Private
 exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
-  const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+  const bootcamp = await Bootcamp.findById(req.params.id);
   if (!bootcamp) {
     return next(
       new ErrorResponse(404, `Bootcamp with id ${req.params.id} doesn't exist`)
     );
   }
+  bootcamp.remove(); // Using remove will activiate the cascade delete hook
   res.status(200).json({ success: true, data: {} });
 });
 
