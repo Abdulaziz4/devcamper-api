@@ -1,6 +1,8 @@
+const path = require("path");
 const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
+const FileUpload = require("express-fileupload");
 const colors = require("colors");
 const errorHandler = require("./middlewares/error");
 const connectDB = require("./config/db");
@@ -19,6 +21,12 @@ const app = express();
 
 // Use body parser middleware
 app.use(express.json());
+
+// Use file uploader
+app.use(FileUpload());
+
+// Set static folder
+app.use(express.static(path.join(__dirname, "public")));
 
 // Dev logging
 if (process.env.NODE_ENV === "development") {
