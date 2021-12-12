@@ -16,6 +16,7 @@ connectDB();
 // Routes files
 const bootcamps = require("./routes/bootcamps");
 const courses = require("./routes/courses");
+const auth = require("./routes/auth");
 
 const app = express();
 
@@ -35,7 +36,9 @@ if (process.env.NODE_ENV === "development") {
 // Attatch routes
 app.use("/api/v1/bootcamps", bootcamps);
 app.use("/api/v1/courses", courses);
+app.use("/api/v1/auth", auth);
 
+// Error handler
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
