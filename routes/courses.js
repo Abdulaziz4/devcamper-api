@@ -7,11 +7,25 @@ const {
   updateCourse,
   deleteCourse,
 } = require("../controllers/courses");
+
+const Course = require("../models/Course");
+
+const advancedResults = require("../middlewares/advancedResults");
+
 const { route } = require("./bootcamps");
 
 const router = express.Router({ mergeParams: true });
 
-router.route("/").get(getCourses).post(createCourse);
+router
+  .route("/")
+  .get(
+    advancedResults(Course, {
+      path: "bootcamp",
+      select: "name description",
+    }),
+    getCourses
+  )
+  .post(createCourse);
 
 router
   .route("/:id")
