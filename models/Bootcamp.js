@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 const mongoose = require("mongoose");
 const slugify = require("slugify");
 const gecoder = require("../utils/gecoder");

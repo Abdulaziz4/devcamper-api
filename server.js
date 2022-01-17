@@ -1,7 +1,9 @@
+/* eslint-disable no-undef */
 const path = require("path");
 const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
+var cookieParser = require('cookie-parser')
 const FileUpload = require("express-fileupload");
 const colors = require("colors");
 const errorHandler = require("./middlewares/error");
@@ -22,6 +24,9 @@ const app = express();
 
 // Use body parser middleware
 app.use(express.json());
+
+// Use cookie parser
+app.use(cookieParser());
 
 // Use file uploader
 app.use(FileUpload());

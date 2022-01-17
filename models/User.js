@@ -1,7 +1,12 @@
+/* eslint-disable no-useless-escape */
+/* eslint-disable no-undef */
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
 const Schema = mongoose.Schema;
 
-const userSchema = Schema({
+const userSchema = new Schema({
   name: { type: String, required: [true, "PLease add a name"] },
   email: {
     type: String,
@@ -24,4 +29,22 @@ const userSchema = Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.Model("User", userSchema);
+// Sing the jwt with the secret and returns it
+userSchema.methods.getSignedJwt = function () {
+  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE,
+  });
+};
+
+// Compare the [enteredPassword] with the password in the db
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Hashs the password before saving
+userSchema.pre("save", async function (next) {
+  const salt = await bcrypt.genSalt();
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+module.exports = mongoose.model("User", userSchema);
