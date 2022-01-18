@@ -29,7 +29,7 @@ router.route("/:zipcode/:distance").get(getBootcampsInRadius);
 router
   .route("/")
   .get(advancedResults(Bootcamp, "courses"), getBootcamps)
-  .post(protect.createBootcamp);
+  .post(protect,createBootcamp);
 
 router
   .route("/:id")
@@ -37,6 +37,6 @@ router
   .put(protect, updateBootcamp)
   .delete(protect, deleteBootcamp);
 
-router.route("/:id/photo").put(uploadBootcampPhoto);
+router.route("/:id/photo").put(protect,uploadBootcampPhoto);
 
 module.exports = router;
