@@ -53,6 +53,23 @@ exports.login = asyncHandler(async (req, res, next) => {
   sendTokenResponse(user, 200, res);
 });
 
+// @desc        Get currently loged in user
+// @route       POST api/v1/auth/me
+// @access      Private
+exports.getMe = asyncHandler(async (req, res, next) => {
+  console.log(req.user);
+  res.status(200).json({ success: true, data: req.user });
+});
+
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+  const forgotPasswordToken = req.user.getForgotPasswordToken();
+
+  // Save the field changed by [getForgotPasswordToken] method
+  await req.user.save();
+
+  res.status(200).json({ success: true, data: req.user });
+});
+
 const sendTokenResponse = (user, statusCode, res) => {
   const token = user.getSignedJwt();
 
@@ -73,12 +90,3 @@ const sendTokenResponse = (user, statusCode, res) => {
     .cookie("token", token, options)
     .json({ success: true, token });
 };
-
-// @desc        Get currently loged in user
-// @route       POST api/v1/auth/me
-// @access      Private
-exports.getMe = asyncHandler(async (req, res, next) => {
-
-  console.log(req.user);
-  res.status(200).json({ success: true, data: req.user });
-});

@@ -1,6 +1,7 @@
 /* eslint-disable no-useless-escape */
 /* eslint-disable no-undef */
 const mongoose = require("mongoose");
+const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -39,6 +40,23 @@ userSchema.methods.getSignedJwt = function () {
 // Compare the [enteredPassword] with the password in the db
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Generate and set forgot password token and expiry date
+userSchema.methods.generateForgotPasswordToken = function () {
+  // Generate random 20 hex bytes
+  const token = crypto.randomBytes(20).toString("hex");
+
+  // Hash and set the token
+  this.resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+
+  // Set the expiration date, 10 min
+  tihs.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+  return token;
 };
 
 // Hashs the password before saving
