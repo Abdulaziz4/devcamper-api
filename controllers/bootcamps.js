@@ -40,15 +40,29 @@ exports.createBootcamp = asyncHandler(async (req, res, next) => {
 // @access      Private
 exports.updateBootcamp = asyncHandler(async (req, res, next) => {
   const id = req.params.id;
-  const updatedBootcamp = await Bootcamp.findByIdAndUpdate(id, req.body, {
-    returnOriginal: false,
-  });
+  const bootcamp = await Bootcamp.findById(id);
 
-  if (!updatedBootcamp) {
+  if (!bootcamp) {
     return next(
       new ErrorResponse(404, `Bootcamp with id ${req.params.id} doesn't exist`)
     );
   }
+
+  // Make sure the user is the bootcamp owner
+  if (
+    req.user.id !== bootcamp.user.id.toString() &&
+    req.user.role !== "admin"
+  ) {
+    return next(
+      new ErrorResponse(401, "User is not authorized to update this bootcamp")
+    );
+  }
+
+  const updatedBootcamp = await Bootcamp.findByIdAndUpdate(id, req.body, {
+    returnOriginal: false,
+    runValidators: true,
+  });
+
   res.status(200).json({ success: true, data: updatedBootcamp });
 });
 
@@ -62,6 +76,16 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
       new ErrorResponse(404, `Bootcamp with id ${req.params.id} doesn't exist`)
     );
   }
+  // Make sure the user is the bootcamp owner
+  if (
+    req.user.id !== bootcamp.user.id.toString() &&
+    req.user.role !== "admin"
+  ) {
+    return next(
+      new ErrorResponse(401, "User is not authorized to update this bootcamp")
+    );
+  }
+
   bootcamp.remove(); // Using remove will activiate the cascade delete hook
   res.status(200).json({ success: true, data: {} });
 });
@@ -103,7 +127,15 @@ exports.uploadBootcampPhoto = asyncHandler(async (req, res, next) => {
       new ErrorResponse(404, `Bootcamp with id ${req.params.id} doesn't exist`)
     );
   }
-
+  // Make sure the user is the bootcamp owner
+  if (
+    req.user.id !== bootcamp.user.id.toString() &&
+    req.user.role !== "admin"
+  ) {
+    return next(
+      new ErrorResponse(401, "User is not authorized to update this bootcamp")
+    );
+  }
   // Check if a file is sent
   if (!req.files) {
     return next(new ErrorResponse(400, "Please upload a file"));

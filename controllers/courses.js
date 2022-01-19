@@ -41,11 +41,21 @@ exports.getSingleCourse = asyncHandler(async (req, res, next) => {
 // @access      Private
 exports.createCourse = asyncHandler(async (req, res, next) => {
   req.body.bootcamp = req.params.bootcampId; // add id to the body
-
+  req.body.user = req.user.id;
   const bootcamp = await Bootcamp.findById(req.params.bootcampId);
   // check if bootcamp exist
   if (!bootcamp) {
     return next(new ErrorResponse(404, "No bootcamp with the id"));
+  }
+
+  // Make sure the user is the bootcamp owner
+  if (
+    req.user.id !== bootcamp.user.id.toString() &&
+    req.user.role !== "admin"
+  ) {
+    return next(
+      new ErrorResponse(401, "User is not authorized to create this course")
+    );
   }
 
   const data = await Course.create(req.body);
@@ -57,14 +67,22 @@ exports.createCourse = asyncHandler(async (req, res, next) => {
 // @route       PUT api/v1/courses/:id
 // @access      Private
 exports.updateCourse = asyncHandler(async (req, res, next) => {
-  const data = await Course.findByIdAndUpdate(req.params.id, req.body, {
-    runValidators: true,
-    new: true,
-  });
+  const course = await Course.findById(req.params.id);
 
   if (!data) {
     return next(new ErrorResponse(404, "No course with the id"));
   }
+
+  // Make sure the user is the course owner
+  if (req.user.id !== course.user.id.toString() && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(401, "User is not authorized to update this course")
+    );
+  }
+  const data = await Course.findByIdAndUpdate(req.params.id, req.body, {
+    runValidators: true,
+    new: true,
+  });
 
   res.status(200).json({ sucess: true, data: data });
 });
@@ -79,6 +97,12 @@ exports.deleteCourse = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(404, "No course with this id"));
   }
 
+  // Make sure the user is the course owner
+  if (req.user.id !== course.user.id.toString() && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(401, "User is not authorized to update this course")
+    );
+  }
   course.remove();
 
   res.status(200).json({ sucess: true, data: course });
