@@ -54,13 +54,16 @@ userSchema.methods.generateForgotPasswordToken = function () {
     .digest("hex");
 
   // Set the expiration date, 10 min
-  tihs.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
 
   return token;
 };
 
 // Hashs the password before saving
 userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
+    next();
+  }
   const salt = await bcrypt.genSalt();
   this.password = await bcrypt.hash(this.password, salt);
 });
