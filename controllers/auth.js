@@ -63,6 +63,39 @@ exports.getMe = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, data: req.user });
 });
 
+// @desc        Update the user details
+// @route       PUT api/v1/auth/updatedetails
+// @access      Private
+exports.updateDetails = asyncHandler(async (req, res, next) => {
+  const updatedDetails = {
+    name: req.body.name,
+    email: req.body.email,
+  };
+
+  const user = await User.findByIdAndUpdate(req.user.id, updatedDetails, {
+    new: true,
+    runValidators: true,
+  });
+
+  sendTokenResponse(user, 200, res);
+});
+
+// @desc        Update the user password
+// @route       PUT api/v1/auth/updatepassword
+// @access      Private
+exports.updatePassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id).select("+password");
+
+  if (!(await user.matchPassword(req.body.currentPassword))) {
+    return next(new ErrorResponse(401, "Password is not a match"));
+  }
+
+  user.password = req.body.newPassword;
+  await user.save();
+
+  sendTokenResponse(user, 200, res);
+});
+
 // @desc        Sends a token to the user's email address to reset password
 // @route       POST api/v1/auth/forgot
 // @access      Public
