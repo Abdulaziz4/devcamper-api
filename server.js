@@ -3,7 +3,7 @@ const path = require("path");
 const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
-var cookieParser = require('cookie-parser')
+var cookieParser = require("cookie-parser");
 const FileUpload = require("express-fileupload");
 const colors = require("colors");
 const errorHandler = require("./middlewares/error");
@@ -19,6 +19,7 @@ connectDB();
 const bootcamps = require("./routes/bootcamps");
 const courses = require("./routes/courses");
 const auth = require("./routes/auth");
+const users = require("./routes/users");
 
 const app = express();
 
@@ -42,6 +43,7 @@ if (process.env.NODE_ENV === "development") {
 app.use("/api/v1/bootcamps", bootcamps);
 app.use("/api/v1/courses", courses);
 app.use("/api/v1/auth", auth);
+app.use("/api/v1/auth/users", users);
 
 // Error handler
 app.use(errorHandler);
