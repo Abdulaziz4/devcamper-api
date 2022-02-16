@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const courseSchema = Schema({
+const reviewSchema = Schema({
   title: {
     type: String,
     trim: true,
@@ -34,4 +34,7 @@ const courseSchema = Schema({
   },
 });
 
-module.exports = mongoose.model("Review", courseSchema);
+// Prevent user from submitting more than one review per bootcamp
+reviewSchema.index({ bootcamp: 1, user: 1 }, { unique: true });
+
+module.exports = mongoose.model("Review", reviewSchema);

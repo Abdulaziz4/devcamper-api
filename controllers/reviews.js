@@ -2,6 +2,7 @@ const Review = require("../models/Review");
 
 const asyncHandler = require("../middlewares/async");
 const ErrorResponse = require("../utils/errorResponse");
+const Bootcamp = require("../models/Bootcamp");
 
 // @desc        Get reviews
 // @route       GET api/v1/reviews
@@ -18,4 +19,39 @@ exports.getReviews = asyncHandler(async (req, res, next) => {
   } else {
     res.status(200).json(res.advancedResults);
   }
+});
+
+// @desc        Get single review
+// @route       GET api/v1/reviews/:id
+// @access      Public
+exports.getReview = asyncHandler(async (req, res, next) => {
+  const review = await Review.findById(req.params.id).populate({
+    path: "bootcamp",
+    select: "name description",
+  });
+
+  if (!review) {
+    return next(new ErrorResponse(404, "Can't find the review"));
+  }
+  res.status(200).json({
+    status: true,
+    data: review,
+  });
+});
+
+// @desc        Create a review
+// @route       POST api/v1/boocamps/:bootcampId/reviews
+// @access      Private
+exports.createReview = asyncHandler(async (req, res, next) => {
+  req.body.bootcamp = req.params.bootcampId;
+  req.body.user = req.user.id;
+
+  const bootcamp = await Bootcamp.findById(req.params.bootcampId);
+
+  if (!bootcamp) {
+    return next(new ErrorResponse(404, "No bootcamp with the id"));
+  }
+  const review = await Review.create(req.body);
+
+  res.status(201).json({ success: true, data: review });
 });
