@@ -6,6 +6,12 @@ const morgan = require("morgan");
 var cookieParser = require("cookie-parser");
 const mongoSanitize = require("express-mongo-sanitize");
 const FileUpload = require("express-fileupload");
+const helmet = require("helmet");
+var xss = require("xss-clean");
+var cors = require("cors");
+const rateLimit = require("express-rate-limit");
+var hpp = require("hpp");
+
 const colors = require("colors");
 const errorHandler = require("./middlewares/error");
 const connectDB = require("./config/db");
@@ -36,6 +42,29 @@ app.use(FileUpload());
 
 // Sanatize data
 app.use(mongoSanitize());
+
+// Set security headers
+app.use(helmet());
+
+// Prevents XSS attacks
+app.use(xss());
+
+// Enable cors
+app.use(cors());
+
+// Limit erquest rate
+const limiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 10 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// Apply the rate limiting middleware to all requests
+app.use(limiter);
+
+// Protect against HTTP Parameter Pollution attacks
+app.use(hpp());
 
 // Set static folder
 app.use(express.static(path.join(__dirname, "public")));
